@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.util.Locale;
 import java.util.Random;
@@ -9,7 +8,21 @@ public class Competitive implements Runnable {
     private final static int MOD = 1000000000;
     private final static int MAX_STACK_SIZE = 128;
     private void solve()   {
-
+        int q = readInt();
+        Treap t = null;
+        for(int i = 0; i < q; i++){
+            String type = readString();
+            int x = readInt();
+            if (type.equals("+1") || type.equals("1")) {
+                t = Treap.add(x,t);
+            }
+            else if(type.equals("-1")) {
+                t = t.remove(x);
+            }
+            else if(type.equals("0")){
+                out.println(t.search(t.size - x + 1));
+            }
+        }
     }
 
     //////////////////////////////////////////////////////////////////
@@ -128,6 +141,7 @@ public class Competitive implements Runnable {
     static class Treap {
         public int x;
         public int y;
+        public int size;
         public Treap Left;
         public Treap Right;
 
@@ -136,11 +150,13 @@ public class Competitive implements Runnable {
             this.y = y;
             this.Left = Left;
             this.Right = Right;
+            this.size = get_size(Left,Right) + 1;
         }
 
         private Treap(int x, int y) {
             this.x=x;
             this.y=y;
+            this.size=1;
         }
 
         public static Treap merge(Treap L, Treap R) {
@@ -148,9 +164,11 @@ public class Competitive implements Runnable {
             if (R == null) return L;
             if (L.y > R.y) {
                 Treap T = merge(L.Right, R);
+                T.size = get_size(L.Right, R);
                 return new Treap(L.x, L.y, L.Left, T);
             } else {
                 Treap T = merge(L, R.Left);
+                T.size = get_size(L,R.Left);
                 return new Treap(R.x, R.y, T, R.Right);
             }
         }
@@ -163,6 +181,9 @@ public class Competitive implements Runnable {
                     newTree = arr[0];
                     R = arr[1];
                 }
+                else {
+                    R = null;
+                }
                 L = new Treap(this.x, this.y, this.Left, newTree);
                 return new Treap[]{L,R};
 
@@ -172,6 +193,9 @@ public class Competitive implements Runnable {
                     var arr = this.Left.split(x, L, null);
                     newTree = arr[1];
                     L =arr[0];
+                }
+                else {
+                    L=null;
                 }
                 R = new Treap(this.x, this.y, newTree, this.Right);
                 return new Treap[]{L,R};
@@ -184,8 +208,43 @@ public class Competitive implements Runnable {
             Treap m = new Treap(x, random.nextInt());
             return merge(merge(treap[0],m),treap[1]);
         }
-        
+        public Treap remove(int x) {
+            Treap l=null,m=null,r=null;
+            var t1 = this.split(x-1,l,r);
+
+            l = t1[0]; r = t1[1];
+
+            t1 = r.split(x,m,r);
+
+            return merge(l,t1[1]);
+        }
+        public int search(int k) {
+            int lsize=0,rsize=0;
+            if(this.Left!=null) lsize = this.Left.size;
+            if(this.Right!=null) rsize = this.Right.size;
+
+            if(k==lsize + 1) {
+                return this.x;
+            }
+            if(lsize < k)  {
+                return this.Right.search(k-lsize-1);
+            }
+            else {
+                return this.Left.search(k);
+            }
+
+        }
+        public void print_tree() {
+            System.out.println(this.x);
+            if(this.Left != null)  Left.print_tree();
+            if(this.Right != null) Right.print_tree();
+        }
+        public static int get_size(Treap L, Treap R) {
+            int sz=0;
+            if(L!=null) sz += L.size;
+            if(R!=null) sz+= R.size;
+            return sz;
+        }
     }
 
 }
-
